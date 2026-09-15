@@ -1,0 +1,8 @@
+node_modules/
+__pycache__/
+.DS_Store
+data/
+.env
+frontend/dist/
+agent-transcripts/
+backend/.env

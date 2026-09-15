@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ mode }) => {
   const env = process.env
-  const backendUrl = env.BACKEND_URL || 'http://localhost:8000'
+  const backendUrl = env.VITE_API_URL || 'http://127.0.0.1:8000'
 
   return {
     plugins: [react(), tailwindcss()],
@@ -15,10 +15,12 @@ export default defineConfig(({ mode }) => {
         '/api': {
           target: backendUrl,
           changeOrigin: true,
+          timeout: 1800000,
         },
         '/health': {
           target: backendUrl,
           changeOrigin: true,
+          timeout: 1800000,
         },
       },
     },

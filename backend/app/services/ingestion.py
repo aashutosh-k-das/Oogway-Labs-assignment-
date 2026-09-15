@@ -233,10 +233,13 @@ async def run_ingestion(db: AsyncSession) -> IngestionResult:
             date_val = metadata.get("date")
             if isinstance(date_val, str):
                 try:
-                    from datetime import datetime, timezone
-                    date_val = datetime.strptime(date_val, "%Y-%m-%d").replace(tzinfo=timezone.utc)
+                    from datetime import datetime
+                    date_val = datetime.strptime(date_val, "%Y-%m-%d")
                 except ValueError:
                     date_val = None
+            elif hasattr(date_val, "year") and hasattr(date_val, "month") and hasattr(date_val, "day"):
+                from datetime import datetime
+                date_val = datetime(date_val.year, date_val.month, date_val.day)
 
             # Create source record
             source = Source(

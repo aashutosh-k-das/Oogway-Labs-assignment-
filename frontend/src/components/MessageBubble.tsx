@@ -145,15 +145,27 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
                 <a
                   key={`${source.id || idx}-${idx}`}
                   href={source.post_url || '#'}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group flex flex-col justify-between p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 transition-all text-xs text-slate-300"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (onViewArtifact) {
+                      const fakeMessage = {
+                        ...message,
+                        artifact: {
+                          type: 'markdown',
+                          title: `Source: ${source.title || 'Document'}`,
+                          content: `### Source Context\n\n**Type:** ${source.source_type || 'Unknown'}\n**Guest:** ${source.guest || 'N/A'}\n**Time:** ${source.start_time || 'N/A'}\n\n---\n\n> ${source.chunk_content?.replace(/\\n/g, '\\n> ') || 'No content preview available.'}\n\n---\n\n[Open Original Link](${source.post_url || '#'})`
+                        }
+                      };
+                      onViewArtifact(fakeMessage as any);
+                    }
+                  }}
+                  className="group flex flex-col justify-between p-2.5 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-slate-700 transition-all text-xs text-slate-300 cursor-pointer"
                 >
                   <div className="flex items-start justify-between gap-2">
                     <span className="font-semibold text-slate-200 line-clamp-1 group-hover:text-indigo-300 transition-colors">
                       {source.guest ? `🎙️ ${source.guest}` : `📄 ${source.title}`}
                     </span>
-                    <ExternalLink size={11} className="text-slate-500 group-hover:text-indigo-400 flex-shrink-0 mt-0.5" />
+                    <FileText size={11} className="text-slate-500 group-hover:text-indigo-400 flex-shrink-0 mt-0.5" />
                   </div>
                   {source.chunk_content && (
                     <p className="text-[11px] text-slate-400 line-clamp-2 mt-1 leading-relaxed">
