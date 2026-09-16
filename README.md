@@ -2,6 +2,14 @@
 
 An AI-powered assistant application featuring a Python backend, a Vite frontend, and a PostgreSQL database with `pgvector` for vector storage. It also integrates with Ollama for local LLM capabilities.
 
+## Documentation
+
+For a detailed look at the system design and architecture, check out our documentation:
+- [System Design](docs/design.md)
+- [System Architecture](docs/architecture.md)
+- [Product Requirements Document (PRD)](docs/PRD.md)
+- [Test Plan](docs/test-plan.md)
+
 ## Architecture
 
 - **Frontend**: Vite application running on port `5173`.
