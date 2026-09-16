@@ -107,3 +107,12 @@ To remove all Docker containers, volumes, and build artifacts:
 ```bash
 make clean
 ```
+## Image 
+<img width="1680" height="1050" alt="Screenshot 2026-09-16 at 2 39 50 AM" src="https://github.com/user-attachments/assets/18abf922-0946-4c05-a861-2282b3d95c15" />
+<img width="1680" height="1050" alt="Screenshot 2026-09-16 at 2 39 41 AM" src="https://github.com/user-attachments/assets/752fd802-f232-4fb7-a5dc-5174cac159d5" />
+<img width="1680" height="1050" alt="Screenshot 2026-09-16 at 2 39 14 AM" src="https://github.com/user-attachments/assets/6d185160-93d3-496d-8284-8a5c1afc7dbf" />
+![Uploading Screenshot 2026-09-16 at 2.39.33 AM.png…]()
+
+
+
+
