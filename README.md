@@ -10,12 +10,33 @@ For a detailed look at the system design and architecture, check out our documen
 - [Product Requirements Document (PRD)](docs/PRD.md)
 - [Test Plan](docs/test-plan.md)
 
-## Architecture
+## System Architecture
 
-- **Frontend**: Vite application running on port `5173`.
-- **Backend**: Python FastAPI application running on port `8000`.
-- **Database**: PostgreSQL with `pgvector` for efficient similarity search.
-- **LLM**: Local Ollama instance running on port `11434`.
+```text
+┌─────────────────────────────────────────────────────────────────┐
+│                        Docker Compose                           │
+│                                                                 │
+│  ┌────────────┐    ┌──────────────────┐    ┌────────────────┐   │
+│  │  Frontend  │    │     Backend      │    │   PostgreSQL   │   │
+│  │ React+Vite │───▶│     FastAPI      │───▶│  + pgvector    │   │
+│  │  :5173     │    │     :8000        │    │  :5432         │   │
+│  └────────────┘    └────────┬─────────┘    └────────────────┘   │
+│                             │                                   │
+│                    ┌────────┴────────┐                          │
+│                    │   LLM Provider  │                          │
+│                    │   (pluggable)   │                          │
+│                    ├─────────────────┤                          │
+│                    │  Ollama (local) │                          │
+│                    │  OpenAI (cloud) │                          │
+│                    │ Anthropic(cloud)│                          │
+│                    └─────────────────┘                          │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+- **Frontend**: Vite + React application (running on port `5173`).
+- **Backend**: Python FastAPI application (running on port `8000`) that handles orchestration, RAG, and API endpoints.
+- **Database**: PostgreSQL with the `pgvector` extension for efficient similarity search over chunk embeddings.
+- **LLM**: A pluggable LLM provider abstraction, defaulting to a local Ollama instance (running on port `11434`), with support for OpenAI and Anthropic.
 
 ## Prerequisites
 
