@@ -41,11 +41,14 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
   });
 
   return (
-    <div className={`flex gap-3.5 w-full animate-fade-in ${isUser ? 'justify-end' : 'justify-start'}`}>
+    <article
+      aria-label={isUser ? 'Your message' : 'Assistant reply'}
+      className={`flex gap-3.5 w-full animate-fade-in items-start ${isUser ? 'justify-end' : 'justify-start'}`}
+    >
       {/* AI Avatar */}
       {!isUser && (
-        <div className="relative flex-shrink-0 mt-0.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
+        <div className="relative flex-shrink-0 mt-0.5 w-8 h-8">
+          <div className="w-full h-full rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20">
             <Sparkles size={16} className="text-white" />
           </div>
           <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-[#090d16]"></span>
@@ -59,11 +62,11 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
           <span className={isUser ? 'text-indigo-300 font-semibold' : 'text-slate-300 font-semibold'}>
             {isUser ? 'You' : 'Lenny Growth AI'}
           </span>
-          <span>•</span>
-          <span className="flex items-center gap-1 text-slate-400">
+          <span aria-hidden="true">•</span>
+          <time dateTime={message.created_at} className="flex items-center gap-1 text-slate-400">
             <Clock size={10} />
             {formattedTime}
-          </span>
+          </time>
         </div>
 
         {/* Content Box */}
@@ -90,9 +93,10 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
         {/* Artifact Callout Card (When an artifact is attached) */}
         {!isUser && message.artifact && (
           <div className="mt-3 w-full">
-            <div 
+            <button
+              type="button"
               onClick={() => onViewArtifact?.(message)}
-              className="group relative flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 hover:border-indigo-500/60 shadow-md shadow-indigo-950/40 transition-all cursor-pointer"
+              className="group relative w-full text-left flex items-center justify-between p-3.5 rounded-xl bg-gradient-to-r from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/30 hover:border-indigo-500/60 shadow-md shadow-indigo-950/40 transition-all cursor-pointer"
             >
               <div className="flex items-center gap-3 min-w-0">
                 <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 group-hover:bg-indigo-500/20 group-hover:scale-105 transition-all flex-shrink-0">
@@ -117,7 +121,7 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
                 <span>Open Studio</span>
                 <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </div>
-            </div>
+            </button>
           </div>
         )}
 
@@ -132,6 +136,7 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
               {message.sources.length > 2 && (
                 <button
                   onClick={() => setShowAllSources(!showAllSources)}
+                  aria-expanded={showAllSources}
                   className="flex items-center gap-1 text-[11px] text-indigo-400 hover:text-indigo-300 transition-colors cursor-pointer"
                 >
                   <span>{showAllSources ? 'Show less' : `Show all +${message.sources.length - 2}`}</span>
@@ -165,7 +170,7 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
                     <span className="font-semibold text-slate-200 line-clamp-1 group-hover:text-indigo-300 transition-colors">
                       {source.guest ? `🎙️ ${source.guest}` : `📄 ${source.title}`}
                     </span>
-                    <FileText size={11} className="text-slate-500 group-hover:text-indigo-400 flex-shrink-0 mt-0.5" />
+                    <FileText size={11} className="text-slate-400 group-hover:text-indigo-400 flex-shrink-0 mt-0.5" />
                   </div>
                   {source.chunk_content && (
                     <p className="text-[11px] text-slate-400 line-clamp-2 mt-1 leading-relaxed">
@@ -190,6 +195,7 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
             onClick={handleCopy}
             className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] font-medium bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-slate-200 border border-slate-800 transition-all cursor-pointer"
             title="Copy message to clipboard"
+            aria-label={copied ? 'Copied to clipboard' : 'Copy message'}
           >
             {copied ? <Check size={12} className="text-emerald-400" /> : <Copy size={12} />}
             <span>{copied ? 'Copied' : 'Copy'}</span>
@@ -203,6 +209,6 @@ export function MessageBubble({ message, onViewArtifact }: MessageBubbleProps) {
           <User size={16} />
         </div>
       )}
-    </div>
+    </article>
   );
 }

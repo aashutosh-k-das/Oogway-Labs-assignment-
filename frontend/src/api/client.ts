@@ -4,6 +4,15 @@ import type { AppConfig, IngestionResult, IngestionStatus, Message, Session, Ses
 
 const API_BASE = '/api';
 
+/** Error carrying the HTTP status, so callers can tell server errors from bad requests. */
+export class ApiError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     headers: { 'Content-Type': 'application/json' },
@@ -12,7 +21,7 @@ async function fetchJSON<T>(url: string, options?: RequestInit): Promise<T> {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ error: 'Request failed' }));
-    throw new Error(errorData.detail || errorData.error || `HTTP ${response.status}`);
+    throw new ApiError(errorData.detail || errorData.error || `HTTP ${response.status}`, response.status);
   }
 
   // 204 No Content

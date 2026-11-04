@@ -26,6 +26,7 @@ interface ChatAreaProps {
   onViewArtifact: (message: Message) => void;
   hasSession: boolean;
   onNewChat?: () => void;
+  isOffline?: boolean;
 }
 
 export function ChatArea({ 
@@ -34,7 +35,8 @@ export function ChatArea({
   onSend, 
   onViewArtifact, 
   hasSession, 
-  onNewChat 
+  onNewChat,
+  isOffline,
 }: ChatAreaProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -49,7 +51,13 @@ export function ChatArea({
   return (
     <div className="flex flex-col h-full min-w-0 min-h-0 bg-[#090d16]">
       {/* Messages Stream */}
-      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-6 min-w-0 min-h-0">
+      <div
+        className="flex-1 overflow-y-auto px-4 md:px-8 py-6 min-w-0 min-h-0"
+        role="log"
+        aria-live="polite"
+        aria-label="Conversation"
+        tabIndex={0}
+      >
         {messages.length === 0 && !isLoading ? (
           <div className="flex flex-col items-center justify-center h-full max-w-xl mx-auto text-center px-4 py-8">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-cyan-500/20 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 shadow-lg shadow-indigo-500/10">
@@ -67,7 +75,7 @@ export function ChatArea({
                   onClick={() => onSend(item.prompt)}
                   className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800 hover:border-indigo-500/40 text-slate-300 hover:text-white transition-all text-xs cursor-pointer group shadow-sm"
                 >
-                  <span className="text-sm mt-0.5">{item.icon}</span>
+                  <span className="text-sm mt-0.5" aria-hidden="true">{item.icon}</span>
                   <div className="min-w-0">
                     <p className="font-semibold text-slate-200 group-hover:text-indigo-300 transition-colors">
                       {item.title}
@@ -92,7 +100,7 @@ export function ChatArea({
 
             {/* Pulsing Loading Wave */}
             {isLoading && (
-              <div className="flex gap-3.5 items-start animate-fade-in">
+              <div className="flex gap-3.5 items-start animate-fade-in" role="status">
                 <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-md shadow-indigo-500/20 flex-shrink-0">
                   <Sparkles size={16} className="text-white" />
                 </div>
@@ -111,7 +119,7 @@ export function ChatArea({
       </div>
 
       {/* Message Composer Dock */}
-      <MessageComposer onSend={onSend} isLoading={isLoading} />
+      <MessageComposer onSend={onSend} isLoading={isLoading} disabled={isOffline} />
     </div>
   );
 }
@@ -137,9 +145,9 @@ function WelcomeScreen({
         </div>
 
         {/* Hero Title */}
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white text-center tracking-tight leading-[1.15] max-w-3xl">
+        <h2 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-white text-center tracking-tight leading-[1.15] max-w-3xl">
           World-Class Product & Growth Intelligence
-        </h1>
+        </h2>
 
         {/* Subtitle */}
         <p className="mt-4 text-sm md:text-base text-slate-300 text-center max-w-2xl leading-relaxed">
@@ -214,9 +222,10 @@ function PillarCard({
   onTrigger: (prompt: string) => void;
 }) {
   return (
-    <div 
+    <button
+      type="button"
       onClick={() => onTrigger(prompt)}
-      className="glass-card-interactive p-4 rounded-2xl flex flex-col justify-between cursor-pointer group"
+      className="glass-card-interactive p-4 rounded-2xl flex flex-col justify-between text-left cursor-pointer group"
     >
       <div>
         <div className="w-9 h-9 rounded-xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center mb-3 group-hover:scale-105 transition-transform">
@@ -234,7 +243,7 @@ function PillarCard({
         <span>Try this prompt</span>
         <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
       </div>
-    </div>
+    </button>
   );
 }
 

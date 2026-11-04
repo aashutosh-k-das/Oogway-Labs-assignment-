@@ -63,7 +63,11 @@ export function MessageComposer({ onSend, isLoading, disabled }: MessageComposer
     <div className="w-full max-w-4xl mx-auto px-4 pb-4 pt-2">
       {/* Quick Prompt Pills */}
       {!input && (
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-2.5 mb-1 no-scrollbar text-xs">
+        <div
+          className="flex items-center gap-1.5 overflow-x-auto pb-2.5 mb-1 no-scrollbar text-xs"
+          role="group"
+          aria-label="Prompt templates"
+        >
           <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1 pr-1 flex-shrink-0">
             <Sparkles size={11} className="text-indigo-400" />
             <span>Templates:</span>
@@ -88,10 +92,14 @@ export function MessageComposer({ onSend, isLoading, disabled }: MessageComposer
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Ask strategic product questions, request PRD templates, or draft Ship30 essays..."
+          placeholder={
+            disabled
+              ? "You're offline. Reconnect to send messages."
+              : 'Ask strategic product questions, request PRD templates, or draft Ship30 essays...'
+          }
           rows={1}
           disabled={isLoading || disabled}
-          className="w-full bg-transparent outline-none text-sm text-slate-100 placeholder-slate-500 resize-none max-h-[220px] leading-relaxed pr-12"
+          className="w-full bg-transparent outline-none text-sm text-slate-100 placeholder-slate-400 resize-none max-h-[220px] leading-relaxed pr-12"
           aria-label="Message prompt"
         />
 
@@ -102,7 +110,7 @@ export function MessageComposer({ onSend, isLoading, disabled }: MessageComposer
               <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/60 text-slate-300 font-mono text-[10px]">Return</kbd>
               <span>to send</span>
             </span>
-            <span>•</span>
+            <span aria-hidden="true">•</span>
             <span className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700/60 text-slate-300 font-mono text-[10px]">Shift + Return</kbd>
               <span>new line</span>
@@ -115,7 +123,7 @@ export function MessageComposer({ onSend, isLoading, disabled }: MessageComposer
             className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all cursor-pointer ${
               input.trim() && !isLoading && !disabled
                 ? 'bg-gradient-to-br from-indigo-500 to-indigo-600 hover:from-indigo-400 hover:to-indigo-500 text-white shadow-md shadow-indigo-500/30 scale-100'
-                : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-50'
+                : 'bg-slate-800 text-slate-400 cursor-not-allowed opacity-60'
             }`}
             aria-label="Send prompt"
           >

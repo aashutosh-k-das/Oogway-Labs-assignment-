@@ -1,6 +1,6 @@
 /* Artifact Studio — Executive Document Workspace */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { 
@@ -42,6 +42,14 @@ export function ArtifactViewer({
   const [copied, setCopied] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Escape exits fullscreen so keyboard users are never trapped in the overlay.
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setIsFullscreen(false);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isFullscreen]);
+
   // Statistics
   const stats = useMemo(() => {
     if (!activeArtifact?.content) return { words: 0, characters: 0, readTime: '1 min' };
@@ -79,7 +87,7 @@ export function ArtifactViewer({
   };
 
   return (
-    <div className={`flex h-full w-full bg-[#0b0f19] border-l border-slate-800/80 overflow-hidden select-text ${
+    <section aria-label="Artifact Studio" className={`flex h-full w-full bg-[#0b0f19] border-l border-slate-800/80 overflow-hidden select-text ${
       isFullscreen ? 'fixed inset-0 z-50' : 'relative'
     }`}>
       {/* Left Artifact Rail (When multiple artifacts exist in the session) */}
@@ -102,6 +110,7 @@ export function ArtifactViewer({
                 <button
                   key={msg.id || idx}
                   onClick={() => msg.artifact && onSelectArtifact(msg.artifact)}
+                  aria-current={isSelected ? 'true' : undefined}
                   className={`w-full flex items-start gap-2 p-2 rounded-xl text-left transition-all cursor-pointer ${
                     isSelected
                       ? 'bg-indigo-950/50 border border-indigo-500/40 text-white shadow-sm'
@@ -159,9 +168,11 @@ export function ArtifactViewer({
           {/* Action Toolbar */}
           <div className="flex items-center gap-1.5 flex-shrink-0">
             {/* View Mode Toggle */}
-            <div className="flex items-center p-0.5 rounded-lg bg-slate-800/80 border border-slate-700/60 mr-2">
+            <div role="group" aria-label="View mode" className="flex items-center p-0.5 rounded-lg bg-slate-800/80 border border-slate-700/60 mr-2">
               <button
                 onClick={() => setActiveTab('preview')}
+                aria-pressed={activeTab === 'preview'}
+                aria-label="Preview"
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                   activeTab === 'preview'
                     ? 'bg-indigo-600 text-white shadow-sm'
@@ -173,6 +184,8 @@ export function ArtifactViewer({
               </button>
               <button
                 onClick={() => setActiveTab('code')}
+                aria-pressed={activeTab === 'code'}
+                aria-label="Source"
                 className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                   activeTab === 'code'
                     ? 'bg-indigo-600 text-white shadow-sm'
@@ -190,6 +203,7 @@ export function ArtifactViewer({
                 onClick={onRegenerate}
                 className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all cursor-pointer"
                 title="Regenerate document"
+                aria-label="Regenerate document"
               >
                 <RotateCw size={14} />
               </button>
@@ -200,6 +214,7 @@ export function ArtifactViewer({
               onClick={handleCopy}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all text-xs font-medium cursor-pointer"
               title="Copy to clipboard"
+              aria-label={copied ? 'Copied to clipboard' : 'Copy to clipboard'}
             >
               {copied ? <Check size={14} className="text-emerald-400" /> : <Copy size={14} />}
               <span className="hidden md:inline">{copied ? 'Copied' : 'Copy'}</span>
@@ -210,6 +225,7 @@ export function ArtifactViewer({
               onClick={handleDownload}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all text-xs font-medium cursor-pointer"
               title="Download file"
+              aria-label="Export file"
             >
               <Download size={14} />
               <span className="hidden md:inline">Export</span>
@@ -220,6 +236,7 @@ export function ArtifactViewer({
               onClick={() => setIsFullscreen(!isFullscreen)}
               className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-slate-700/80 border border-slate-700/60 text-slate-300 hover:text-white transition-all cursor-pointer hidden md:flex"
               title={isFullscreen ? 'Exit fullscreen' : 'Fullscreen'}
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             >
               {isFullscreen ? <Minimize2 size={14} /> : <Maximize2 size={14} />}
             </button>
@@ -229,6 +246,7 @@ export function ArtifactViewer({
               onClick={onClose}
               className="p-1.5 rounded-lg bg-slate-800/60 hover:bg-rose-500/20 hover:text-rose-300 border border-slate-700/60 text-slate-400 transition-all cursor-pointer ml-1"
               title="Close Studio"
+              aria-label="Close Artifact Studio"
             >
               <X size={15} />
             </button>
@@ -238,7 +256,7 @@ export function ArtifactViewer({
         {/* Content Body */}
         <div className="flex-1 overflow-y-auto p-6 relative">
           {isLoading && (
-            <div className="absolute inset-0 bg-[#0c111d]/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center">
+            <div role="status" className="absolute inset-0 bg-[#0c111d]/90 backdrop-blur-sm z-20 flex flex-col items-center justify-center p-6 text-center">
               <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-4 animate-pulse">
                 <Sparkles size={24} />
               </div>
@@ -274,14 +292,14 @@ export function ArtifactViewer({
             )
           ) : (
             <div className="max-w-3xl mx-auto">
-              <div className="relative rounded-xl bg-[#090d16] border border-slate-800 p-4 font-mono text-xs text-indigo-200 whitespace-pre-wrap leading-relaxed overflow-x-auto">
+              <pre className="relative rounded-xl bg-[#090d16] border border-slate-800 p-4 font-mono text-xs text-indigo-200 whitespace-pre-wrap leading-relaxed overflow-x-auto">
                 {activeArtifact.content}
-              </div>
+              </pre>
             </div>
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 
