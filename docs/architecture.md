@@ -130,7 +130,9 @@ app/
 ```
 src/
 ├── App.tsx              → Main orchestrator (React Query, state)
-├── api/client.ts        → Typed API client
+├── api/client.ts        → Typed API client (ApiError carries HTTP status)
+├── lib/chatStore.ts     → IndexedDB mirror of sessions/messages (offline reads)
+├── hooks/useOnlineStatus.ts → navigator.onLine as a React hook
 ├── types/index.ts       → TypeScript interfaces
 └── components/
     ├── Sidebar.tsx       → Session list, new chat, provider badge
@@ -138,6 +140,8 @@ src/
     ├── MessageBubble.tsx → Message with markdown + citations
     ├── MessageComposer.tsx → Input with auto-resize
     └── ArtifactViewer.tsx  → MD/HTML viewer (sandboxed)
+
+service-worker/sw.js     → App-shell service worker (precache list injected by vite.config.ts)
 ```
 
 ## 5. Ingestion & Retrieval Flow

@@ -24,11 +24,14 @@ import { Sidebar } from './components/Sidebar';
 import { ChatArea } from './components/ChatArea';
 import { ArtifactViewer } from './components/ArtifactViewer';
 import * as api from './api/client';
+import * as chatStore from './lib/chatStore';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 import type { Artifact, Message, Session, SessionDetail, AppConfig } from './types';
 
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { retry: 1, refetchOnWindowFocus: false },
+    // 'always' lets queryFns run while offline so they can fall back to IndexedDB.
+    queries: { retry: 1, refetchOnWindowFocus: false, networkMode: 'always' },
   },
 });
 
@@ -46,6 +49,12 @@ function AppContent() {
     return saved !== null ? saved === 'true' : true;
   });
   const [isIngesting, setIsIngesting] = useState(false);
+  const isOnline = useOnlineStatus();
+
+  // Refresh from the server as soon as connectivity returns.
+  useEffect(() => {
+    if (isOnline) qc.invalidateQueries();
+  }, [isOnline, qc]);
 
   useEffect(() => {
     localStorage.setItem('lenny_showSidebar', showDesktopSidebar.toString());
@@ -62,6 +71,7 @@ function AppContent() {
         e.preventDefault();
         createSessionMutation.mutate();
       }
+      if (e.key === 'Escape') setShowMobileSidebar(false);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -69,12 +79,17 @@ function AppContent() {
 
   const { data: sessions = [] } = useQuery<Session[]>({
     queryKey: ['sessions'],
-    queryFn: api.listSessions,
+    queryFn: () => chatStore.networkFirst(api.listSessions, chatStore.saveSessions, chatStore.loadSessions),
   });
 
   const { data: activeSession } = useQuery<SessionDetail>({
     queryKey: ['session', activeSessionId],
-    queryFn: () => api.getSession(activeSessionId!),
+    queryFn: () =>
+      chatStore.networkFirst(
+        () => api.getSession(activeSessionId!),
+        chatStore.saveSessionDetail,
+        () => chatStore.loadSessionDetail(activeSessionId!),
+      ),
     enabled: !!activeSessionId,
   });
 
@@ -95,6 +110,7 @@ function AppContent() {
   const deleteSessionMutation = useMutation({
     mutationFn: api.deleteSession,
     onSuccess: (_, sessionId) => {
+      chatStore.removeSession(sessionId).catch(() => {});
       qc.invalidateQueries({ queryKey: ['sessions'] });
       if (activeSessionId === sessionId) {
         setActiveSessionId(null);
@@ -205,11 +221,16 @@ function AppContent() {
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-[#090d16] text-[#f8fafc]">
+      <a href="#main-content" className="skip-link">
+        Skip to chat
+      </a>
+
       {/* Mobile Drawer Overlay */}
       {showMobileSidebar && (
         <div
           className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm md:hidden"
           onClick={() => setShowMobileSidebar(false)}
+          aria-hidden="true"
         />
       )}
 
@@ -245,6 +266,7 @@ function AppContent() {
               onClick={() => setShowMobileSidebar(true)}
               className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white md:hidden cursor-pointer"
               aria-label="Open sidebar"
+              aria-expanded={showMobileSidebar}
             >
               <Menu size={18} />
             </button>
@@ -254,7 +276,8 @@ function AppContent() {
               onClick={() => setShowDesktopSidebar(!showDesktopSidebar)}
               className="hidden md:flex p-2 rounded-lg bg-slate-900/80 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
               title={showDesktopSidebar ? 'Collapse sidebar' : 'Expand sidebar'}
-              aria-label="Toggle Sidebar"
+              aria-label={showDesktopSidebar ? 'Collapse sidebar' : 'Expand sidebar'}
+              aria-expanded={showDesktopSidebar}
             >
               {showDesktopSidebar ? <PanelLeftClose size={16} /> : <PanelLeftOpen size={16} />}
             </button>
@@ -290,6 +313,10 @@ function AppContent() {
                   : 'bg-slate-900/90 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800'
               }`}
               title={showArtifact ? 'Hide Artifact Studio' : 'Open Artifact Studio'}
+              aria-pressed={showArtifact}
+              aria-label={`${showArtifact ? 'Hide' : 'Open'} Artifact Studio${
+                sessionArtifacts.length > 0 ? `, ${sessionArtifacts.length} artifacts` : ''
+              }`}
             >
               {showArtifact ? <PanelRightClose size={14} /> : <PanelRightOpen size={14} />}
               <span>Studio</span>
@@ -302,8 +329,17 @@ function AppContent() {
           </div>
         </header>
 
+        {!isOnline && (
+          <div
+            role="status"
+            className="px-4 py-2 text-xs font-medium text-amber-200 bg-amber-950/60 border-b border-amber-700/40 flex-shrink-0"
+          >
+            You're offline. Showing chat history saved on this device; sending is paused until you reconnect.
+          </div>
+        )}
+
         {/* Split Screen Workspace (Chat + Artifact Studio) */}
-        <main className="flex-1 flex overflow-hidden min-h-0 relative">
+        <main id="main-content" tabIndex={-1} className="flex-1 flex overflow-hidden min-h-0 relative outline-none">
           {/* Chat Stream Area */}
           <div className={`flex-1 flex flex-col min-w-0 min-h-0 ${showArtifact ? 'hidden lg:flex' : 'flex'}`}>
             <ChatArea
@@ -313,6 +349,7 @@ function AppContent() {
               onViewArtifact={handleViewArtifact}
               hasSession={!!activeSessionId}
               onNewChat={handleNewChat}
+              isOffline={!isOnline}
             />
           </div>
 
